@@ -47,3 +47,4 @@ test-output
 
 # Environment Variables
 .env
+/generated/prisma
