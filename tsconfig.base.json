@@ -7,6 +7,7 @@
     "isolatedModules": true,
     "lib": ["es2022"],
     "module": "nodenext",
+    "baseUrl": ".",
     "moduleResolution": "nodenext",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
@@ -16,6 +17,9 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["development"]
+    "customConditions": ["development"],
+    "paths": {
+      "@packages/*": ["packages/*"]
+    }
   }
 }

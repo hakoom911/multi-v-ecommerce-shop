@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData } from "../utils/auth.helper";
-import { prisma } from "../../../../packages/libs/prisma";
-import { ValidationError } from "../../../../packages/error-handler";
+import { prisma } from "@packages/libs/prisma";
+import { ValidationError } from "@packages/error-handler";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {

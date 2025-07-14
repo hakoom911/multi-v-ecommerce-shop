@@ -1,8 +1,8 @@
 import { NextFunction } from "express";
-import { ValidationError } from "../../../../packages/error-handler";
 import crypto from "crypto";
-import redis from "../../../../packages/libs/redis";
 import { sendEmail } from "./send-mail";
+import { ValidationError } from "@packages/error-handler";
+import redis from "@packages/libs/redis";
 
 const OTP_CONFIGS = {
     MAXIMUM_REQUEST_COUNT: 2,
