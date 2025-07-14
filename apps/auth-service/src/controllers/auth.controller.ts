@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData } from "../utils/auth.helper";
+import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
 import { prisma } from "@packages/libs/prisma";
 import { ValidationError } from "@packages/error-handler";
+import { hash } from "bcryptjs";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
@@ -22,5 +23,32 @@ export async function userRegistration(req: Request, res: Response, next: NextFu
         })
     } catch (err) {
         return next(err)
+    }
+}
+
+export async function verifyUser(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { email, otp, password, name } = req.body;
+        if (!email || !otp || !password || !name) {
+            return next(new ValidationError("All fields are required!"));
+        }
+
+        const existingUser = await prisma.users.findUnique({ where: { email } });
+        if (existingUser) {
+            return next(new ValidationError("User already exists with this email!"));
+        }
+        await verifyOTP(email, otp, next);
+        const hashedPassword = await hash(password, 10);
+
+        const user = await prisma.users.create({
+            data: { name, email, password: hashedPassword }
+        })
+
+        res.status(201).json({
+            message: "User registered successfully!",
+            result: {user}
+        })
+    } catch (err) {
+        return next(err);
     }
 }

@@ -10,7 +10,9 @@ const OTP_CONFIGS = {
     LOCK_EX_S: 1800, // 30 minutes
     SPAM_LOCK_EX_S: 3600, // 1 hour 
     REQUEST_COUNT_EX_S: 3600,
-    COOLDOWN_EX_S: 60 // 1 minutes
+    COOLDOWN_EX_S: 60, // 1 minutes
+    MAXIMUM_ATTEMPTS_COUNT: 2,
+    ATTEMPTS_COUNT_EX_S: 300
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,4 +57,24 @@ export async function sendOTP(name: string, email: string, template: string) {
     await sendEmail(email, "Verify Your Email", template, { name, otp })
     await redis.set(`otp:${email}`, otp, 'EX', OTP_CONFIGS['EX_S']);
     await redis.set(`otp_cooldown:${email}`, "true", "EX", OTP_CONFIGS['COOLDOWN_EX_S'])
+}
+
+export async function verifyOTP(email: string, otp: string, next: NextFunction) {
+    const storedOTP = await redis.get(`otp:${email}`);
+    if (!storedOTP) {
+        return next(new ValidationError("Invalid or expired OTP!"))
+    }
+    const failedAttemptsKey = `otp_attempts:${email}`;
+    const failedAttempts = parseInt((await redis.get(failedAttemptsKey)) || "0");
+
+    if (storedOTP !== otp) {
+        if (failedAttempts >= OTP_CONFIGS['MAXIMUM_ATTEMPTS_COUNT']) {
+            await redis.set(`otp_lock:${email}`, "locked", "EX", OTP_CONFIGS['LOCK_EX_S']);
+            await redis.del(`otp:${email}`, failedAttemptsKey);
+            return next(new ValidationError("Too many failed attempts. Your account is locked for 30 minutes!"));
+        }
+        await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", OTP_CONFIGS['ATTEMPTS_COUNT_EX_S'])
+        return next(new ValidationError(`Incorrect OTP. ${OTP_CONFIGS['ATTEMPTS_COUNT_EX_S'] - failedAttempts} attempts left.`))
+    }
+    await redis.del(`otp:${email}`, failedAttemptsKey);   
 }
