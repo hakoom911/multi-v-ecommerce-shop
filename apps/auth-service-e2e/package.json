@@ -4,7 +4,7 @@
   "private": true,
   "nx": {
     "implicitDependencies": [
-      "@multi-v-ecommerce-shop/auth-service"
+      "auth-service"
     ],
     "targets": {
       "e2e": {

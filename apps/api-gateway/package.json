@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "nx": {
+    "name": "api-gateway",
+    "projectType": "application",
+    "sourceRoot": "api-gateway/src",
     "targets": {
       "serve": {
         "continuous": true,
@@ -12,15 +15,15 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@multi-v-ecommerce-shop/api-gateway:build",
+          "buildTarget": "api-gateway:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@multi-v-ecommerce-shop/api-gateway:build:development"
+            "buildTarget": "api-gateway:build:development"
           },
           "production": {
-            "buildTarget": "@multi-v-ecommerce-shop/api-gateway:build:production"
+            "buildTarget": "api-gateway:build:production"
           }
         }
       }
