@@ -1,8 +1,11 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import crypto from "crypto";
 import { sendEmail } from "./send-mail";
 import { ValidationError } from "@packages/error-handler";
 import redis from "@packages/libs/redis";
+import { TUserType } from "../types";
+
+
 
 const OTP_CONFIGS = {
     MAXIMUM_REQUEST_COUNT: 2,
@@ -17,7 +20,7 @@ const OTP_CONFIGS = {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function validateRegistrationData(data: any, userType: "user" | "seller") {
+export function validateRegistrationData(data: any, userType: TUserType) {
     const { name, email, password, phone_number, country } = data;
 
     if (!name || !email || !password || (userType === "seller" && (!phone_number || !country))) {
@@ -79,4 +82,16 @@ export async function verifyOTP(email: string, otp: string) {
         throw new ValidationError(`Incorrect OTP. ${OTP_CONFIGS['MAXIMUM_ATTEMPTS_COUNT'] - failedAttempts} attempts left.`)
     }
     await redis.del(`otp:${email}`, failedAttemptsKey);
+}
+
+export async function handleForgotPasswordProcess(req: Request, res: Response, userType: TUserType, next: NextFunction){
+    try{
+        const {email} = req.body;
+        if(!email) throw new ValidationError("Email is required!");
+
+        
+
+    }catch(err){
+
+    }
 }

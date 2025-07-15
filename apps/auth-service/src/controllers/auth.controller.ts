@@ -1,17 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
-import { prisma } from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import { generateToken } from "../libs/jwt";
 import setCookie from "../utils/cookies/setCookie";
 import { hashPassword, verifyPassword } from "../libs/bcrypt";
+import { createUser, findUserByEmail } from "../dal/users";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
     try {
         const { name, email, password } = req.body;
         validateRegistrationData(req.body, "user");
-        const existingUser = await prisma.users.findUnique({ where: { email } });
+        const existingUser = await findUserByEmail(email);
         if (existingUser) {
             return next(new ValidationError("User already exists with this email!"));
         }
@@ -35,16 +35,14 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
             return next(new ValidationError("All fields are required!"));
         }
 
-        const existingUser = await prisma.users.findUnique({ where: { email } });
+        const existingUser = await findUserByEmail(email);
         if (existingUser) {
             return next(new ValidationError("User already exists with this email!"));
         }
         await verifyOTP(email, otp);
         const hashedPassword = await hashPassword(password);
+        await createUser({ name, email, password: hashedPassword })
 
-        await prisma.users.create({
-            data: { name, email, password: hashedPassword }
-        })
         res.status(201).json({
             message: "User registered successfully!",
             result: {}
@@ -61,7 +59,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
             return next(new ValidationError("Email and password are required!"));
         }
 
-        const user = await prisma.users.findUnique({ where: { email } });
+        const user = await findUserByEmail(email);
         if (!user) return next(new AuthError("User doesn't exists!"));
 
         const isMatchedPassword = await verifyPassword(password, user.password!);
@@ -89,4 +87,8 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     } catch (err) {
         return next(err);
     }
+}
+
+export async function userForgotPassword(req: Request, res: Response, next: NextFunction){
+
 }
