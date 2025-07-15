@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { checkOTPRestrictions, handleForgotPasswordProcess, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
+import { checkOTPRestrictions, handleForgotPasswordProcess, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP, verifyUserForgotPasswordOTP } from "../utils/auth.helper";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import { generateToken } from "../libs/jwt";
 import setCookie from "../utils/cookies/setCookie";
-import { hashPassword, verifyPassword } from "../libs/bcrypt";
-import { createUser, findUserByEmail } from "../dal/users";
+import { hashPassword, comparePassword } from "../libs/bcrypt";
+import { createUser, findUserByEmail, updateUser } from "../dal/users";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
@@ -62,7 +62,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const user = await findUserByEmail(email);
         if (!user) return next(new AuthError("User doesn't exists!"));
 
-        const isMatchedPassword = await verifyPassword(password, user.password!);
+        const isMatchedPassword = await comparePassword(password, user.password!);
         if (!isMatchedPassword) {
             return next(new AuthError("Invalid email or password!"))
         }
@@ -91,4 +91,35 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
 
 export async function userForgotPassword(req: Request, res: Response, next: NextFunction) {
     await handleForgotPasswordProcess(req, res, "user", next);
+}
+
+export async function verifyUserForgotPassword(req: Request, res: Response, next: NextFunction) {
+    await verifyUserForgotPasswordOTP(req,res,next);
+}
+
+export async function resetUserPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { email, newPassword } = req.body;
+
+        if (!email || !newPassword) return next(new ValidationError("Email and new password is required!"));
+
+        const user = await findUserByEmail(email);
+        if (!user) return next(new ValidationError("User not found!"));
+
+        const hasSamePassword = await comparePassword(newPassword, user.password!)
+        if (hasSamePassword) return next(new ValidationError("New password cannot be the same as the old password!."))
+        const hashedPassword = await hashPassword(newPassword);
+
+        const updatedUser = await updateUser("email", email, { password: hashedPassword })
+
+        res.status(200).json({
+            message: "Password reset successfully!",
+            result: {
+                user: {id: updatedUser.id, name: updatedUser.name, email: updatedUser.email}
+            }
+        })
+
+    } catch (err) {
+
+    }
 }
