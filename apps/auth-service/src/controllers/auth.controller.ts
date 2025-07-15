@@ -73,7 +73,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "hshopisthebestrefresh"
         const refreshToken = generateToken({ id: user.id, role: "user" }, refreshTokenSecret, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" })
 
-        // Store the refresh and access token in an httpOnly secure cookie 
+        // Store the refresh and access tokens in an httpOnly secure cookie 
         setCookie(res, "access_token", accessToken);
         setCookie(res, "refresh_token", refreshToken);
 
