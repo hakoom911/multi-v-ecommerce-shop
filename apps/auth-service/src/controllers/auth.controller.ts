@@ -2,9 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
 import { prisma } from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handler";
-import { hash, compare } from "bcryptjs";
 import { generateToken } from "../libs/jwt";
 import setCookie from "../utils/cookies/setCookie";
+import { hashPassword, verifyPassword } from "../libs/bcrypt";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +40,7 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
             return next(new ValidationError("User already exists with this email!"));
         }
         await verifyOTP(email, otp);
-        const hashedPassword = await hash(password, 10);
+        const hashedPassword = await hashPassword(password);
 
         await prisma.users.create({
             data: { name, email, password: hashedPassword }
@@ -64,7 +64,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const user = await prisma.users.findUnique({ where: { email } });
         if (!user) return next(new AuthError("User doesn't exists!"));
 
-        const isMatchedPassword = await compare(password, user.password!);
+        const isMatchedPassword = await verifyPassword(password, user.password!);
         if (!isMatchedPassword) {
             return next(new AuthError("Invalid email or password!"))
         }
