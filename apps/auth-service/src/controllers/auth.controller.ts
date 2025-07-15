@@ -7,8 +7,8 @@ import { hash } from "bcryptjs";
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
     try {
+        const {name, email, password} = req.body;
         validateRegistrationData(req.body, "user");
-        const { name, email } = req.body;
         const existingUser = await prisma.users.findUnique({ where: { email } });
         if (existingUser) {
             return next(new ValidationError("User already exists with this email!"));
@@ -28,7 +28,7 @@ export async function userRegistration(req: Request, res: Response, next: NextFu
 
 export async function verifyUser(req: Request, res: Response, next: NextFunction) {
     try {
-        const { email, otp, password, name } = req.body;
+        const { name, email, otp, password } = req.body;
         if (!email || !otp || !password || !name) {
             return next(new ValidationError("All fields are required!"));
         }
@@ -40,13 +40,12 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
         await verifyOTP(email, otp, next);
         const hashedPassword = await hash(password, 10);
 
-        const user = await prisma.users.create({
+        await prisma.users.create({
             data: { name, email, password: hashedPassword }
         })
-
         res.status(201).json({
             message: "User registered successfully!",
-            result: {user}
+            result: {}
         })
     } catch (err) {
         return next(err);
