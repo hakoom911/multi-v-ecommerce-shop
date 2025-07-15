@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
 import { prisma } from "@packages/libs/prisma";
-import { ValidationError } from "@packages/error-handler";
-import { hash } from "bcryptjs";
+import { AuthError, ValidationError } from "@packages/error-handler";
+import { hash, compare } from "bcryptjs";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
     try {
-        const {name, email, password} = req.body;
+        const { name, email, password } = req.body;
         validateRegistrationData(req.body, "user");
         const existingUser = await prisma.users.findUnique({ where: { email } });
         if (existingUser) {
@@ -47,6 +47,26 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
             message: "User registered successfully!",
             result: {}
         })
+    } catch (err) {
+        return next(err);
+    }
+}
+
+export async function loginUser(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return next(new ValidationError("Email and password are required!"));
+        }
+
+        const user = await prisma.users.findUnique({ where: { email } });
+        if(!user) return next(new AuthError("User doesn't exists!"));
+
+        const isMatchedPassword = await compare(password, user.password!);
+        if(!isMatchedPassword){
+            return next(new AuthError("Invalid email or password!"))
+        }
+
     } catch (err) {
         return next(err);
     }
