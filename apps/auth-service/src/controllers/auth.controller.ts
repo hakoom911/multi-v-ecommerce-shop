@@ -14,7 +14,7 @@ export async function userRegistration(req: Request, res: Response, next: NextFu
             return next(new ValidationError("User already exists with this email!"));
         }
         await checkOTPRestrictions(email);
-        await trackOTPRequests(email, next);
+        await trackOTPRequests(email);
         await sendOTP(name, email, "user-activation-mail");
 
         res.status(200).json({
@@ -37,7 +37,7 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
         if (existingUser) {
             return next(new ValidationError("User already exists with this email!"));
         }
-        await verifyOTP(email, otp, next);
+        await verifyOTP(email, otp);
         const hashedPassword = await hash(password, 10);
 
         await prisma.users.create({
