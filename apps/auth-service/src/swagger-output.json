@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "host": "localhost:6001",
-  "basePath": "/api",
+  "basePath": "/",
   "schemes": [
     "http"
   ],
@@ -22,13 +22,13 @@
               "type": "object",
               "properties": {
                 "name": {
-                  "example": "hakeem"
+                  "example": "any"
                 },
                 "email": {
-                  "example": "hakeemalzuhairi@gmail.com"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "password"
+                  "example": "any"
                 }
               }
             }
@@ -52,16 +52,16 @@
               "type": "object",
               "properties": {
                 "name": {
-                  "example": "hakeem"
+                  "example": "any"
                 },
                 "email": {
-                  "example": "hakeemalzuhairi@gmail.com"
+                  "example": "any"
                 },
                 "otp": {
                   "example": "any"
                 },
                 "password": {
-                  "example": "password"
+                  "example": "any"
                 }
               }
             }
@@ -85,10 +85,10 @@
               "type": "object",
               "properties": {
                 "email": {
-                  "example": "hakeemalzuhairi@gmail.com"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "password"
+                  "example": "any"
                 }
               }
             }
@@ -97,6 +97,53 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/user-forgot-password": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/user-reset-password": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "newPassword": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/verify-user-forgot-password": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
           }
         }
       }
