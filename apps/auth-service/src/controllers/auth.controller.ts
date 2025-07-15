@@ -13,7 +13,7 @@ export async function userRegistration(req: Request, res: Response, next: NextFu
         if (existingUser) {
             return next(new ValidationError("User already exists with this email!"));
         }
-        await checkOTPRestrictions(email, next);
+        await checkOTPRestrictions(email);
         await trackOTPRequests(email, next);
         await sendOTP(name, email, "user-activation-mail");
 
