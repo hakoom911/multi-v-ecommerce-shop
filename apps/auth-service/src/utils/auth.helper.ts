@@ -42,13 +42,15 @@ export async function checkOTPRestrictions(email: string) {
     }
 }
 
-export async function trackOTPRequests(email: string, next: NextFunction) {
+export async function trackOTPRequests(email: string) {
     const otpRequestCountKey = `otp_request_count:${email}`;
     const otpRequestCount = parseInt((await redis.get(otpRequestCountKey) || "0"));
+
     if (otpRequestCount >= OTP_CONFIGS['MAXIMUM_REQUEST_COUNT']) {
-        await redis.set(`otp_spam_lock:${email}`, "locked", "EX", OTP_CONFIGS['SPAM_LOCK_EX_S']) // Lock for 1 hour 
-        return next(new ValidationError("Too many requests, please wait 1 hour before requesting again."))
+        await redis.set(`otp_spam_lock:${email}`, "locked", "EX", OTP_CONFIGS['SPAM_LOCK_EX_S'])  
+        throw new ValidationError("Too many requests, please wait 1 hour before requesting again.")
     }
+
     await redis.set(otpRequestCountKey, otpRequestCount + 1, "EX", OTP_CONFIGS['REQUEST_COUNT_EX_S']);
 }
 
@@ -76,5 +78,5 @@ export async function verifyOTP(email: string, otp: string, next: NextFunction) 
         await redis.set(failedAttemptsKey, failedAttempts + 1, "EX", OTP_CONFIGS['ATTEMPTS_COUNT_EX_S'])
         throw new ValidationError(`Incorrect OTP. ${OTP_CONFIGS['MAXIMUM_ATTEMPTS_COUNT'] - failedAttempts} attempts left.`)
     }
-    await redis.del(`otp:${email}`, failedAttemptsKey);   
+    await redis.del(`otp:${email}`, failedAttemptsKey);
 }
