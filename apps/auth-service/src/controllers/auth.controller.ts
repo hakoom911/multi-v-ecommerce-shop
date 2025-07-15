@@ -3,6 +3,8 @@ import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationDa
 import { prisma } from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import { hash, compare } from "bcryptjs";
+import { generateToken } from "../libs/jwt";
+import setCookie from "../utils/cookies/setCookie";
 
 
 export async function userRegistration(req: Request, res: Response, next: NextFunction) {
@@ -60,12 +62,29 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         }
 
         const user = await prisma.users.findUnique({ where: { email } });
-        if(!user) return next(new AuthError("User doesn't exists!"));
+        if (!user) return next(new AuthError("User doesn't exists!"));
 
         const isMatchedPassword = await compare(password, user.password!);
-        if(!isMatchedPassword){
+        if (!isMatchedPassword) {
             return next(new AuthError("Invalid email or password!"))
         }
+
+        const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "hshopisthebest"
+        const accessToken = generateToken({ id: user.id, role: "user" }, accessTokenSecret, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" })
+
+        const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "hshopisthebest"
+        const refreshToken = generateToken({ id: user.id, role: "user" }, refreshTokenSecret, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" })
+
+        // Store the refresh and access token in an httpOnly secure cookie 
+        setCookie(res, "access_token", accessToken);
+        setCookie(res, "refresh_token", refreshToken);
+
+        res.status(200).json({
+            message: "User login successfully!",
+            result: {
+                user: { id: user.id, name: user.name, email: user.email }
+            }
+        })
 
     } catch (err) {
         return next(err);
