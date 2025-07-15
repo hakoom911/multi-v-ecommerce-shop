@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { checkOTPRestrictions, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
+import { checkOTPRestrictions, handleForgotPasswordProcess, sendOTP, trackOTPRequests, validateRegistrationData, verifyOTP } from "../utils/auth.helper";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import { generateToken } from "../libs/jwt";
 import setCookie from "../utils/cookies/setCookie";
@@ -89,6 +89,6 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     }
 }
 
-export async function userForgotPassword(req: Request, res: Response, next: NextFunction){
-
+export async function userForgotPassword(req: Request, res: Response, next: NextFunction) {
+    await handleForgotPasswordProcess(req, res, "user", next);
 }

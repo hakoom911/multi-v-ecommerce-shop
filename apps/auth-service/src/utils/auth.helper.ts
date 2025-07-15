@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import crypto from "crypto";
 import { sendEmail } from "./send-mail";
-import { ValidationError } from "@packages/error-handler";
+import { NotFound, ValidationError } from "@packages/error-handler";
 import redis from "@packages/libs/redis";
 import { TUserType } from "../types";
+import { findUserByEmail } from "../dal/users";
 
 
 
@@ -50,7 +51,7 @@ export async function trackOTPRequests(email: string) {
     const otpRequestCount = parseInt((await redis.get(otpRequestCountKey) || "0"));
 
     if (otpRequestCount >= OTP_CONFIGS['MAXIMUM_REQUEST_COUNT']) {
-        await redis.set(`otp_spam_lock:${email}`, "locked", "EX", OTP_CONFIGS['SPAM_LOCK_EX_S'])  
+        await redis.set(`otp_spam_lock:${email}`, "locked", "EX", OTP_CONFIGS['SPAM_LOCK_EX_S'])
         throw new ValidationError("Too many requests, please wait 1 hour before requesting again.")
     }
 
@@ -84,14 +85,25 @@ export async function verifyOTP(email: string, otp: string) {
     await redis.del(`otp:${email}`, failedAttemptsKey);
 }
 
-export async function handleForgotPasswordProcess(req: Request, res: Response, userType: TUserType, next: NextFunction){
-    try{
-        const {email} = req.body;
-        if(!email) throw new ValidationError("Email is required!");
+export async function handleForgotPasswordProcess(req: Request, res: Response, userType: TUserType, next: NextFunction) {
+    try {
+        const { email } = req.body;
+        if (!email) throw new ValidationError("Email is required!");
+        let user = null;
+        if (userType === "user") {
+            user = await findUserByEmail(email);
+        }
+        if (!user) throw new ValidationError(`${userType} not found!`);
 
-        
-
-    }catch(err){
-
+        await checkOTPRestrictions(email);
+        await trackOTPRequests(email);
+        // TODO: make the passed template name dynamic by user type 
+        await sendOTP(user.name, email, "forgot-password-user-mail")
+        res.status(200).json({
+            message: "OTP sent to your email. Please verify your account.",
+            result: {}
+        })
+    } catch (err) {
+        next(err);
     }
 }
