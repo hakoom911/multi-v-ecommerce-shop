@@ -52,7 +52,7 @@ export async function verifyUser(req: Request, res: Response, next: NextFunction
     }
 }
 
-export async function loginUser(req: Request, res: Response, next: NextFunction) {
+export async function userLogin(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -94,10 +94,10 @@ export async function userForgotPassword(req: Request, res: Response, next: Next
 }
 
 export async function verifyUserForgotPassword(req: Request, res: Response, next: NextFunction) {
-    await verifyUserForgotPasswordOTP(req,res,next);
+    await verifyUserForgotPasswordOTP(req, res, next);
 }
 
-export async function resetUserPassword(req: Request, res: Response, next: NextFunction) {
+export async function userResetPassword(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, newPassword } = req.body;
 
@@ -110,13 +110,11 @@ export async function resetUserPassword(req: Request, res: Response, next: NextF
         if (hasSamePassword) return next(new ValidationError("New password cannot be the same as the old password!."))
         const hashedPassword = await hashPassword(newPassword);
 
-        const updatedUser = await updateUser("email", email, { password: hashedPassword })
+        await updateUser("email", email, { password: hashedPassword })
 
         res.status(200).json({
             message: "Password reset successfully!",
-            result: {
-                user: {id: updatedUser.id, name: updatedUser.name, email: updatedUser.email}
-            }
+            result: {}
         })
 
     } catch (err) {
