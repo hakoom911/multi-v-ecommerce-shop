@@ -72,7 +72,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "hshopisthebest"
         const accessToken = generateToken({ id: user.id, role: "user" }, accessTokenSecret, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" })
 
-        const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "hshopisthebest"
+        const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "hshopisthebestrefresh"
         const refreshToken = generateToken({ id: user.id, role: "user" }, refreshTokenSecret, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" })
 
         // Store the refresh and access token in an httpOnly secure cookie 
@@ -82,7 +82,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         res.status(200).json({
             message: "User login successfully!",
             result: {
-                user: { id: user.id, name: user.name, email: user.email }
+                user: { id: user.id, name: user.name, email: user.email , accessToken, refreshToken }
             }
         })
 
