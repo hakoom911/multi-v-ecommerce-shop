@@ -2,10 +2,10 @@ import React from 'react'
 
 type Props = {}
 
-function Page({}: Props) {
+function IndexPage({}: Props) {
   return (
-    <div>Page</div>
+    <div>IndexPage</div>
   )
 }
 
-export default Page
+export default IndexPage
