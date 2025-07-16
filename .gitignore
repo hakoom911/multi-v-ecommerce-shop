@@ -48,3 +48,7 @@ test-output
 # Environment Variables
 .env
 /generated/prisma
+
+# Next.js
+.next
+out
