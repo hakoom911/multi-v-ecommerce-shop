@@ -9,7 +9,7 @@ export const metadata = {
 
 const roboto = Roboto({
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "700", "800", "900"],
+  weight: ["100", "300", "400", "500", "700", "900"],
   variable: "--font-roboto",
 });
 
@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} ${poppins.variable}`}>
+      <body className={` ${roboto.variable} ${poppins.variable} `}>
         <Header />
         {children}
       </body>
