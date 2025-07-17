@@ -70,7 +70,7 @@ function HeaderBottom({}: Props) {
 
         <div>
           {isSticky && (
-            <div className="flex items-center gap-8 pb-2 shadow-lg">
+            <div className="flex items-center gap-8 pb-2">
               <div className="flex items-center gap-2">
                 <Link
                   href={"/login"}
