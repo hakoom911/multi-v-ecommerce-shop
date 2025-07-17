@@ -1,4 +1,3 @@
-import * as React from "react";
 const ProfileIcon = (props: any) => (
   <svg
     width={20}
