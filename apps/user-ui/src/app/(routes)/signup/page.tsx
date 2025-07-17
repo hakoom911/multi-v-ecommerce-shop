@@ -17,7 +17,7 @@ type FormData = {
 function SignupPage({}: Props) {
   const [passVisible, setPassVisible] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [showOTP, setShowOTP] = useState(false);
+  const [showOTP, setShowOTP] = useState(true);
   const [canResend, setCanResend] = useState(false);
   const [timer, setTimer] = useState(60);
   const [otp, setOTP] = useState(["", "", "", "", "", ""]);
@@ -35,12 +35,29 @@ function SignupPage({}: Props) {
   const onSubmit = (data: FormData) => {};
 
   const handleOTPChange = (index: number, value: string) => {
-    if (value) {
-      const newOTP = [...otp];
-      newOTP[index] = value;
-      setOTP(newOTP);
+    if (!/^[0-9]?$/.test(value)) return;
+    const newOTP = [...otp];
+    newOTP[index] = value;
+    setOTP(newOTP);
+
+    if (value && index < inputRefs.current.length - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
+
+  const handleOTPKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+
+  const resendOTP = () => {
+
+  }
 
   return (
     <div className="w-full py-10 min-h-[85vh] bg-[#f1f1f1]">
@@ -157,9 +174,23 @@ function SignupPage({}: Props) {
                     className="size-12 text-center border border-gray-300 outline-none !rounded"
                     value={digit}
                     onChange={(e) => handleOTPChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOTPKeyDown(index, e)}
                   />
                 ))}
               </div>
+              <button className="w-full text-lg cursor-pointer bg-blue-500 text-white py-2 rounded-lg">
+                Verify OTP
+              </button>
+              <p className="text-center text-sm mt-4">
+                {canResend ? (
+                    <button
+                      onClick={resendOTP}
+                      className="text-blue-500 cursor-pointer"
+                    >
+                        Resend OTP
+                    </button>
+                ):(`Resend OTP in ${timer}s`)}
+              </p>
             </div>
           )}
         </div>
